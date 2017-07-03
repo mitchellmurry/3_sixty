@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>3_Sixty Animation</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+      body {
+        background-color: #00ff0000;
+        margin: 0px;
+        overflow: hidden;
+      }
+
+      a {
+        color:#0078ff;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="js/three.js"></script>
+    <script src="js/renderers/CanvasRenderer.js"></script>
+    <script src="js/renderers/Projector.js"></script>
+  
+    <script src="js/libs/dat.gui.min.js"></script>
+
+    <script>
+      var paths;
+
+      var container;
+      var camera, controls, scene, render;
+
+      var numberOfPaths = 1;
+
+      init();
+      animate();
+
+      function init() {
+        container = document.createElement( 'div' );
+        document.body.appendChild( container );
+
+        camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+        camera.position.z = 1000;
+
+        scene = new THREE.Scene();
+
+        createPaths();
+
+        renderer = new THREE.CanvasRenderer();
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        container.appendChild( renderer.domElement );
+      }
+
+      function createPaths() {
+          paths = new Array();
+
+          for( var i = 0; i < numberOfPaths; i++ ) {
+            var path = {
+              color: 0xffffff,
+              direction: Math.random() * 360, 
+              x: Math.random() * 10,
+              y: Math.random() * 10,
+              z: Math.random() * 10,
+              speed: Math.random() * 50,
+              previous: [
+                { x: 10, y: 21, z: 10 },
+                { x: 11, y: 20, z: 9 }
+              ]
+            };
+
+            paths.push( path );
+          }
+        }
+
+      function animate() {
+        requestAnimationFrame( animate );
+        render();
+      }
+
+      function render() {
+
+        for (var i = 0; i < paths.length; i++) {
+        // get this path
+        var path = paths[i]
+
+        renderer.render( scene, camera );
+      }
+    }
+
+    </script>
+  </body>
+</html>
