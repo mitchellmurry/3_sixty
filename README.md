@@ -6,12 +6,12 @@
 
 ## Need to be able to control these variables:
 - Speed of rotation (globe)
-— Randomness of rotation (globe) ie. changes in direction on each axis
-— Speed of movement (dots)
-— Randomness of movement (dots) ie. degree of 'meandering' on each axis
-— Number of dots
-— Colour
-— Size of dots
+- Randomness of rotation (globe) ie. changes in direction on each axis
+- Speed of movement (dots)
+- Randomness of movement (dots) ie. degree of 'meandering' on each axis
+- Number of dots
+- Colour
+- Size of dots
 
 
 ### To dos
