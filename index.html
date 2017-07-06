@@ -17,75 +17,97 @@
     </style>
   </head>
   <body>
-    <script src="js/three.js"></script>
-    <script src="js/renderers/CanvasRenderer.js"></script>
-    <script src="js/renderers/Projector.js"></script>
-  
+    <div id="container"></div>
+
+    <script src="js/three.min.js"></script>
     <script src="js/libs/dat.gui.min.js"></script>
+    <script src="js/libs/stats.min.js"></script>
+
+    <script src="js/controls/OrbitControls.js"></script>
+    <script src="js/renderers/CanvasRenderer.js"></script>
 
     <script>
-      var paths;
+     var parentz, parenty, parentx, renderer, scene, camera, controls, particle;
 
-      var container;
-      var camera, controls, scene, render;
+var particles = []
+var meshs = []
+var PARTICLE_COUNT = 3;
 
-      var numberOfPaths = 1;
+init();
+animate();
 
-      init();
-      animate();
+function init() {
 
-      function init() {
-        container = document.createElement( 'div' );
-        document.body.appendChild( container );
+  // renderer
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  document.body.appendChild( renderer.domElement );
 
-        camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
-        camera.position.z = 1000;
+  // scene
+  scene = new THREE.Scene();
 
-        scene = new THREE.Scene();
+  // camera
+  camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 100 );
+  camera.position.set( 20, 20, 20 );
 
-        createPaths();
+  // controls
+  controls = new THREE.OrbitControls( camera );
+  controls.minDistance = 10;
+  controls.maxDistance = 50;
 
-        renderer = new THREE.CanvasRenderer();
-        renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        container.appendChild( renderer.domElement );
+  // axes
+  scene.add( new THREE.AxisHelper( 1 ) );
+
+  // geometry
+  var geometry = new THREE.SphereGeometry( 0.5, 9, 9 );
+
+  // material
+  var material = new THREE.MeshBasicMaterial( {
+    color: 0xffffff, 
+  } );
+
+  // empty each time we init (in case we change anything in the sliders)
+  particles = []
+
+    for (var i = 0; i < PARTICLE_COUNT; i++) {
+      var particle = new THREE.Object3D();   
+      
+      var mesh = new THREE.Mesh( geometry, material );
+      // some point between 8 and 12
+      mesh.position.x = Math.random() * 4 - 8;
+      mesh.rotation.x = 2 * Math.PI * Math.random();
+      mesh.rotation.y = 2 * Math.PI * Math.random();
+      mesh.rotation.z = 2 * Math.PI * Math.random();
+
+
+      particle.add( mesh )
+            scene.add( particle ) 
+      
+      particles.push( particle )
+      meshs.push( mesh )
+    }   
+
+    }   
+
+
+    function animate() {
+
+      requestAnimationFrame( animate );
+
+
+      for (var i = 0; i < meshs.length; i++) {
+        // get the group from the meshs array
+        var mesh = meshs[i]
+
+        //     particle.rotation.x += 0.01;
+            mesh.rotation.x = mesh.rotation.x + 0.01;
+        // mesh.position.x += 0.01;
       }
 
-      function createPaths() {
-          paths = new Array();
+      renderer.render( scene, camera );
 
-          for( var i = 0; i < numberOfPaths; i++ ) {
-            var path = {
-              color: 0xffffff,
-              direction: Math.random() * 360, 
-              x: Math.random() * 10,
-              y: Math.random() * 10,
-              z: Math.random() * 10,
-              speed: Math.random() * 50,
-              previous: [
-                { x: 10, y: 21, z: 10 },
-                { x: 11, y: 20, z: 9 }
-              ]
-            };
-
-            paths.push( path );
-          }
-        }
-
-      function animate() {
-        requestAnimationFrame( animate );
-        render();
-      }
-
-      function render() {
-
-        for (var i = 0; i < paths.length; i++) {
-        // get this path
-        var path = paths[i]
-
-        renderer.render( scene, camera );
-      }
     }
+
 
     </script>
   </body>
