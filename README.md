@@ -1,3 +1,8 @@
+# How to run locally 
+cd into directory
+python -m SimpleHTTPServer
+access at http://0.0.0.0:8000/
+
 # Requirements
 - Particles move around randomly around a globe/world
 - Logo implemented into the center of the globe
@@ -23,5 +28,4 @@
 - Add a trail/tail to the particle 
 - Enable a GUI
 - Use Orbit controls
--
  
