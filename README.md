@@ -1,7 +1,7 @@
 # How to run locally 
-cd into directory
-python -m SimpleHTTPServer
-access at http://0.0.0.0:8000/
+- cd into directory
+- python -m SimpleHTTPServer
+- access at http://0.0.0.0:8000/
 
 # Requirements
 - Particles move around randomly around a globe/world
