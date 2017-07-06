@@ -30,8 +30,9 @@
      var parentz, parenty, parentx, renderer, scene, camera, controls, particle;
 
 var particles = []
+var speeds = []
 var meshs = []
-var PARTICLE_COUNT = 3;
+var PARTICLE_COUNT = 10;
 
 init();
 animate();
@@ -68,6 +69,7 @@ function init() {
 
   // empty each time we init (in case we change anything in the sliders)
   particles = []
+  speeds = []
 
     for (var i = 0; i < PARTICLE_COUNT; i++) {
       var particle = new THREE.Object3D();   
@@ -78,7 +80,15 @@ function init() {
       
       particle.rotation.x = 2 * Math.PI * Math.random();
       particle.rotation.y = 2 * Math.PI * Math.random();
-      particle.rotation.z = 2 * Math.PI * Math.random();
+      particle.rotation.z = 0;
+      
+      var speed = new THREE.Vector3(
+        Math.random() * 0.05, 
+        0, 
+        0
+      )
+      
+      speeds.push(speed)
 
       particle.add( mesh )
       scene.add( particle ) 
@@ -97,7 +107,13 @@ function init() {
         // get the group from the particles array
         var particle = particles[i]
         
-        particle.rotation.x = particle.rotation.x + 0.01;
+        // get the speed of rotation from the speeds array
+        var speed = speeds[i]
+        
+        particle.rotation.x += speed.x;
+        particle.rotation.y += speed.y;
+        particle.rotation.z += speed.z;
+
       }
 
       renderer.render( scene, camera );
