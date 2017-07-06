@@ -24,6 +24,7 @@
     <script src="js/libs/stats.min.js"></script>
 
     <script src="js/controls/OrbitControls.js"></script>
+    <script src="js/renderers/Projector.js"></script>
     <script src="js/renderers/CanvasRenderer.js"></script>
 
     <script>
@@ -40,7 +41,7 @@ animate();
 function init() {
 
   // renderer
-  renderer = new THREE.WebGLRenderer();
+  renderer = new THREE.CanvasRenderer();
   renderer.setSize( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );
 
@@ -48,13 +49,13 @@ function init() {
   scene = new THREE.Scene();
 
   // camera
-  camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 100 );
-  camera.position.set( 20, 20, 20 );
+  camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 200);
+  camera.position.set(0, 0, 50);
 
   // controls
   controls = new THREE.OrbitControls( camera );
   controls.minDistance = 10;
-  controls.maxDistance = 50;
+  controls.maxDistance = 100;
 
   // axes
   scene.add( new THREE.AxisHelper( 1 ) );
@@ -63,9 +64,20 @@ function init() {
   var geometry = new THREE.SphereGeometry( 0.5, 9, 9 );
 
   // material
-  var material = new THREE.MeshBasicMaterial( {
-    color: 0xffffff, 
-  } );
+  // var material = new THREE.MeshBasicMaterial( {
+  //   color: 0xffffff, 
+  // } );
+  
+  var program = function ( context ) {
+		context.beginPath();
+		context.arc( 0, 0, 0.5, 0, Math.PI * 2, true );
+		context.fill();
+	};
+  
+  var material = new THREE.SpriteCanvasMaterial( {
+		color: 0xffffff,
+		program: program
+	} );
 
   // empty each time we init (in case we change anything in the sliders)
   particles = []
@@ -74,17 +86,17 @@ function init() {
     for (var i = 0; i < PARTICLE_COUNT; i++) {
       var particle = new THREE.Object3D();   
       
-      var mesh = new THREE.Mesh( geometry, material );
+      var mesh =  new THREE.Sprite( material );
       // some point between 8 and 12
-      mesh.position.x = Math.random() * 4 - 8;
+      mesh.position.x = Math.random() * 4 + 5;
       
       particle.rotation.x = 2 * Math.PI * Math.random();
       particle.rotation.y = 2 * Math.PI * Math.random();
       particle.rotation.z = 0;
       
       var speed = new THREE.Vector3(
-        Math.random() * 0.05, 
-        0, 
+        Math.random() * 0.025 + 0.01, 
+        Math.random() * 0.025 + 0.01, 
         0
       )
       
