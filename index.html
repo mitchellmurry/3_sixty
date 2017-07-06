@@ -75,33 +75,29 @@ function init() {
       var mesh = new THREE.Mesh( geometry, material );
       // some point between 8 and 12
       mesh.position.x = Math.random() * 4 - 8;
-      mesh.rotation.x = 2 * Math.PI * Math.random();
-      mesh.rotation.y = 2 * Math.PI * Math.random();
-      mesh.rotation.z = 2 * Math.PI * Math.random();
-
+      
+      particle.rotation.x = 2 * Math.PI * Math.random();
+      particle.rotation.y = 2 * Math.PI * Math.random();
+      particle.rotation.z = 2 * Math.PI * Math.random();
 
       particle.add( mesh )
-            scene.add( particle ) 
+      scene.add( particle ) 
       
       particles.push( particle )
       meshs.push( mesh )
     }   
 
-    }   
+  }   
 
 
     function animate() {
-
       requestAnimationFrame( animate );
 
-
-      for (var i = 0; i < meshs.length; i++) {
-        // get the group from the meshs array
-        var mesh = meshs[i]
-
-        //     particle.rotation.x += 0.01;
-            mesh.rotation.x = mesh.rotation.x + 0.01;
-        // mesh.position.x += 0.01;
+      for (var i = 0; i < particles.length; i++) {
+        // get the group from the particles array
+        var particle = particles[i]
+        
+        particle.rotation.x = particle.rotation.x + 0.01;
       }
 
       renderer.render( scene, camera );
