@@ -32,7 +32,7 @@
 var particles = []
 var speeds = []
 var meshs = []
-var PARTICLE_COUNT = 20;
+var PARTICLE_COUNT = 8;
 
 init();
 animate();
@@ -40,7 +40,7 @@ animate();
 function init() {
 
   // renderer
-  renderer = new THREE.CanvasRenderer();
+  renderer = new THREE.WebGLRenderer( { antialias: true } );
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   renderer.setClearColor(0xffffff, 1)
@@ -62,44 +62,81 @@ function init() {
   scene.add( new THREE.AxisHelper( 1 ));
 
   // empty each time we init (in case we change anything in the sliders)
-  particles = []
+  paths = []
   speeds = []
-  colors = [0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0x00ffff, 0xffff00]
+  colors = [0x009ee3, 0xdedc00, 0xe94e1c]
+  
 
-    for (var i = 0; i < PARTICLE_COUNT; i++) {
-      var particle = new THREE.Object3D();   
+
+  for (var i = 0; i < PARTICLE_COUNT; i++) {
+    function Ellipse(rad, e) {
+      THREE.Curve.call(this);
+      this.radius = rad
+      this.end = e
+    }
+
+    Ellipse.prototype = Object.create( THREE.Curve.prototype );
+    Ellipse.prototype.constructor = Ellipse;
+
+    // define the getPoint function for the subClass
+    Ellipse.prototype.getPoint = function ( t ) {
+      var radians = this.end * t;
+
+      return new THREE.Vector3(this.radius * Math.cos( radians ),
+                               this.radius * Math.sin( radians ),
+                               0);
+    };
+    
+    var path = new THREE.Group();   
+    
+    var color = colors[i % colors.length]
+    var material = new THREE.MeshBasicMaterial({ color: color });
+    var tubeThickness = 0.5
+    
+    var radius = 10 + Math.random() * 10
+    var rotation = new THREE.Vector3(
+      2 * Math.PI * Math.random(), 
+      2 * Math.PI * Math.random(), 
+      0
+    )
       
-      // material  
-      var material = new THREE.SpriteCanvasMaterial( {
-        color: colors[Math.floor(Math.random() * colors.length)],
-        program: function ( context ) {
-          context.beginPath();
-          context.arc(0, 0, 0.5, 0, Math.PI * 2, true);
-          context.fill();
-        }
-      });
+    var arc = Math.PI / 6 + (Math.random() * Math.PI / 6)
+
+    var geometry = new THREE.TubeGeometry(
+      new Ellipse(radius, arc), 
+      100, 
+      tubeThickness, 
+      20, 
+      false
+    );
+    var mesh = new THREE.Mesh(geometry, material);
+    
+    var startBall = new THREE.SphereGeometry(tubeThickness, 32, 32 );
+    var startBallMesh = new THREE.Mesh(startBall, material);
+    startBallMesh.position.x = radius
+
+    var endBall = new THREE.SphereGeometry(tubeThickness, 32, 32 );
+    var endBallMesh = new THREE.Mesh(endBall, material);
+    endBallMesh.position.x = radius * Math.cos(arc)
+    endBallMesh.position.y = radius * Math.sin(arc)
+
+    path.add(mesh)
+    path.add(startBallMesh)
+    path.add(endBallMesh)
+
+    path.rotation.x = rotation.x;
+    path.rotation.y = rotation.y;
       
-      var mesh =  new THREE.Sprite( material );
-      // some point between 8 and 12
-      mesh.position.x = 10 + Math.random() * 10;
+    var speed = new THREE.Vector3(
+      0, 
+      0, 
+      Math.random() * 0.02 + 0.005
+    )
       
-      particle.rotation.x = 2 * Math.PI * Math.random();
-      particle.rotation.y = 2 * Math.PI * Math.random();
-      particle.rotation.z = 0;
+      scene.add(path);
       
-      var speed = new THREE.Vector3(
-        Math.random() * 0.02 + 0.005, 
-        Math.random() * 0.02 + 0.005, 
-        0
-      )
-      
+      paths.push(path)
       speeds.push(speed)
-
-      particle.add( mesh )
-      scene.add( particle ) 
-      
-      particles.push( particle )
-      meshs.push( mesh )
     }   
 
   }   
@@ -108,17 +145,16 @@ function init() {
     function animate() {
       requestAnimationFrame( animate );
 
-      for (var i = 0; i < particles.length; i++) {
+      for (var i = 0; i < paths.length; i++) {
         // get the group from the particles array
-        var particle = particles[i]
+        var path = paths[i]
         
         // get the speed of rotation from the speeds array
         var speed = speeds[i]
         
-        particle.rotation.x += speed.x;
-        particle.rotation.y += speed.y;
-        particle.rotation.z += speed.z;
-
+        path.rotation.x += speed.x;
+        path.rotation.y += speed.y;
+        path.rotation.z += speed.z;
       }
 
       renderer.render( scene, camera );
