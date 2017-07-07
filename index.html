@@ -17,7 +17,6 @@
     </style>
   </head>
   <body>
-    <div id="container"></div>
 
     <script src="js/three.min.js"></script>
     <script src="js/libs/dat.gui.min.js"></script>
@@ -44,6 +43,7 @@ function init() {
   renderer = new THREE.CanvasRenderer();
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.setClearColor(0xffffff, 1)
   document.body.appendChild( renderer.domElement );
 
   // scene
@@ -61,12 +61,10 @@ function init() {
   // axes
   scene.add( new THREE.AxisHelper( 1 ));
 
-
-
   // empty each time we init (in case we change anything in the sliders)
   particles = []
   speeds = []
-  colors = [0xffffff, 0xff0000, 0x00ff00, 0x0000ff]
+  colors = [0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0x00ffff, 0xffff00]
 
     for (var i = 0; i < PARTICLE_COUNT; i++) {
       var particle = new THREE.Object3D();   
