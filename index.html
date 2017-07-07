@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
       body {
-        background-color: #00ff0000;
+        background-color: #ffffff;
         margin: 0px;
         overflow: hidden;
       }
@@ -61,22 +61,25 @@ function init() {
   // axes
   scene.add( new THREE.AxisHelper( 1 ));
 
-  // material  
-  var material = new THREE.SpriteCanvasMaterial( {
-		color: 0xffffff,
-		program: function ( context ) {
-  		context.beginPath();
-  		context.arc(0, 0, 0.5, 0, Math.PI * 2, true);
-  		context.fill();
-  	}
-	});
+
 
   // empty each time we init (in case we change anything in the sliders)
   particles = []
   speeds = []
+  colors = [0xffffff, 0xff0000, 0x00ff00, 0x0000ff]
 
     for (var i = 0; i < PARTICLE_COUNT; i++) {
       var particle = new THREE.Object3D();   
+      
+      // material  
+      var material = new THREE.SpriteCanvasMaterial( {
+        color: colors[Math.floor(Math.random() * colors.length)],
+        program: function ( context ) {
+          context.beginPath();
+          context.arc(0, 0, 0.5, 0, Math.PI * 2, true);
+          context.fill();
+        }
+      });
       
       var mesh =  new THREE.Sprite( material );
       // some point between 8 and 12
