@@ -66,18 +66,12 @@ function init() {
   speeds = []
   colors = [0x009ee3, 0xdedc00, 0xe94e1c]
   
-  var logo = null
-  
   var map = new THREE.TextureLoader().load( "360logo.svg" );
-  // map.needsUpdate = true;
-  map.anisotropy = 16
   var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff, fog: false } );
   var sprite = new THREE.Sprite(material);
   var size = 50
   sprite.scale.set(size, size * 0.5, 0)
   scene.add(sprite);
-  
-
 
 
   for (var i = 0; i < PARTICLE_COUNT; i++) {
@@ -167,6 +161,7 @@ function init() {
         path.rotation.x += speed.x;
         path.rotation.y += speed.y;
         path.rotation.z += speed.z;
+        
       }
 
       renderer.render( scene, camera );
