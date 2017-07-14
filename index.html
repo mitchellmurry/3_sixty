@@ -27,13 +27,12 @@
     <script src="js/renderers/CanvasRenderer.js"></script>
 
     <script>
-     var renderer, scene, camera, controls, particle;
-
+var renderer, scene, camera, controls, particle;
+var guiControls, datGUI;
 var particles = []
 var speeds = []
 var meshs = []
-var PARTICLE_COUNT = 6;
-var tubeThickness = 0;
+// var PARTICLE_COUNT = 6;
 
 init();
 animate();
@@ -62,6 +61,12 @@ function init() {
   // axes
   // scene.add( new THREE.AxisHelper( 1 ));
 
+
+  // added guiControls here to init or variables. Not sure if this is the best place for it. 
+  guiControls = new function () {
+    this.PARTICLE_COUNT = 6;  
+  }
+
   // empty each time we init (in case we change anything in the sliders)
   paths = []
   speeds = []
@@ -75,7 +80,7 @@ function init() {
   scene.add(sprite);
 
 
-  for (var i = 0; i < PARTICLE_COUNT; i++) {
+  for (var i = 0; i < guiControls.PARTICLE_COUNT; i++) {
     function Ellipse(rad, e) {
       THREE.Curve.call(this);
       this.radius = rad
@@ -147,7 +152,6 @@ function init() {
     }   
 
   }
-
     function animate() {
       requestAnimationFrame( animate );
 
@@ -169,6 +173,7 @@ function init() {
     }
 
 
+
     //dat gut
     window.onload = function() {
     var gui = new dat.GUI();
@@ -179,11 +184,10 @@ function init() {
       cameraGui.add(camera.position, 'z', 10,1000).step(1);
       cameraGui.open();
 
-    var pathGui = gui.addFolder('Path Variables')
-      pathGui.add(tubeThickness.size, 'Tube Thickness', 0,1).step(1);
-      pathGui.open();
+    gui.add(guiControls, 'PARTICLE_COUNT', 0, 20).step(1);
 
     };
+
     </script>
   </body>
 </html>
