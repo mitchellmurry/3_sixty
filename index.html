@@ -32,45 +32,108 @@ var guiControls, datGUI;
 var particles = []
 var speeds = []
 var meshs = []
-// var PARTICLE_COUNT = 6;
+
+var settings = {
+  particleCount: 6,
+  tubeMinSpeed: 0.005,
+  tubeMaxSpeed: 0.01,
+  tubeThickness: 0.5,
+  tubeArcMin: Math.PI / 6,
+  tubeArcMax: Math.PI / 3,
+  tubeRadiusMin: 10,
+  tubeRadiusMax: 20,
+  color1: "#009ee3", 
+  color2: "#dedc00", 
+  color3: "#e94e1c",
+  color4: "#009ee3", 
+  color5: "#dedc00", 
+  color6: "#e94e1c",
+}
+
+//dat gut
+var gui = new dat.GUI();
+
+gui.add(settings, 'particleCount', 1, 20).step(1).onFinishChange(function (value) {
+  init()
+});
+
+gui.add(settings, 'tubeMinSpeed', 0, 0.02).onFinishChange(function (value) {
+  init()
+});
+
+gui.add(settings, 'tubeMaxSpeed', 0, 0.1).onFinishChange(function (value) {
+  init()
+});
+
+gui.add(settings, 'tubeThickness', 0.1, 2).onFinishChange(function (value) {
+  init()
+});
+
+gui.add(settings, 'tubeArcMin', 0, 1).onFinishChange(function (value) {
+  init()
+});
+
+gui.add(settings, 'tubeArcMax', 0.05, 2).onFinishChange(function (value) {
+  init()
+});
+
+gui.add(settings, 'tubeRadiusMin', 2, 20).onFinishChange(function (value) {
+  init()
+});
+
+gui.add(settings, 'tubeRadiusMax', 4, 40).onFinishChange(function (value) {
+  init()
+});
+
+gui.addColor(settings, 'color1').onFinishChange(function (value) {
+  init()
+});
+gui.addColor(settings, 'color2').onFinishChange(function (value) {
+  init()
+});
+gui.addColor(settings, 'color3').onFinishChange(function (value) {
+  init()
+});
+gui.addColor(settings, 'color4').onFinishChange(function (value) {
+  init()
+});
+gui.addColor(settings, 'color5').onFinishChange(function (value) {
+  init()
+});
+gui.addColor(settings, 'color6').onFinishChange(function (value) {
+  init()
+});
+
+renderer = new THREE.WebGLRenderer( { antialias: true } );
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setClearColor(0xffffff, 1)
+document.body.appendChild( renderer.domElement );
 
 init();
-animate();
 
 function init() {
-
-  // renderer
-  renderer = new THREE.WebGLRenderer( { antialias: true } );
-  renderer.setPixelRatio( window.devicePixelRatio );
-  renderer.setSize( window.innerWidth, window.innerHeight );
-  renderer.setClearColor(0xffffff, 1)
-  document.body.appendChild( renderer.domElement );
-
-  // scene
-  scene = new THREE.Scene();
-
-  // camera
-  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
-  camera.position.set(0, 0, 50);
-
-  // controls
-  // controls = new THREE.OrbitControls( camera );
-  // controls.minDistance = 10;
-  // controls.maxDistance = 100;
-
-  // axes
-  // scene.add( new THREE.AxisHelper( 1 ));
-
-
-  // added guiControls here to init or variables. Not sure if this is the best place for it. 
-  guiControls = new function () {
-    this.PARTICLE_COUNT = 6;  
-  }
-
   // empty each time we init (in case we change anything in the sliders)
   paths = []
   speeds = []
-  colors = [0x009ee3, 0xdedc00, 0xe94e1c]
+  colors = [settings.color1, settings.color2, settings.color3, settings.color4, settings.color5, settings.color6].filter(function (item) {
+    return item !== null
+  })
+  
+  // scene
+  scene = new THREE.Scene();
+
+  while(scene.children.length > 0){ 
+    scene.remove(scene.children[0]); 
+  }
+  
+  // camera
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  camera.position.set(0, 0, 60);
+  
+  controls = new THREE.OrbitControls( camera );
+  controls.minDistance = 10;
+  controls.maxDistance = 100;  
   
   var map = new THREE.TextureLoader().load( "360logo.svg" );
   var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff, fog: false } );
@@ -79,8 +142,7 @@ function init() {
   sprite.scale.set(size, size * 0.5, 0)
   scene.add(sprite);
 
-
-  for (var i = 0; i < guiControls.PARTICLE_COUNT; i++) {
+  for (var i = 0; i < settings.particleCount; i++) {
     function Ellipse(rad, e) {
       THREE.Curve.call(this);
       this.radius = rad
@@ -103,31 +165,30 @@ function init() {
     
     var color = colors[i % colors.length]
     var material = new THREE.MeshBasicMaterial({ color: color });
-    var tubeThickness = 0.5
     
-    var radius = 10 + Math.random() * 10
+    var radius = settings.tubeRadiusMin + (Math.random() * (settings.tubeRadiusMax - settings.tubeRadiusMin))
     var rotation = new THREE.Vector3(
       2 * Math.PI * Math.random(), 
       2 * Math.PI * Math.random(), 
       0
     )
       
-    var arc = Math.PI / 6 + (Math.random() * Math.PI / 6)
+    var arc = settings.tubeArcMin + (Math.random() * (settings.tubeArcMax - settings.tubeArcMin))
 
     var geometry = new THREE.TubeGeometry(
       new Ellipse(radius, arc), 
       100, 
-      tubeThickness, 
+      settings.tubeThickness, 
       20, 
       false
     );
     var mesh = new THREE.Mesh(geometry, material);
     
-    var startBall = new THREE.SphereGeometry(tubeThickness, 32, 32 );
+    var startBall = new THREE.SphereGeometry(settings.tubeThickness, 32, 32);
     var startBallMesh = new THREE.Mesh(startBall, material);
     startBallMesh.position.x = radius
 
-    var endBall = new THREE.SphereGeometry(tubeThickness, 32, 32 );
+    var endBall = new THREE.SphereGeometry(settings.tubeThickness, 32, 32);
     var endBallMesh = new THREE.Mesh(endBall, material);
     endBallMesh.position.x = radius * Math.cos(arc)
     endBallMesh.position.y = radius * Math.sin(arc)
@@ -142,7 +203,7 @@ function init() {
     var speed = new THREE.Vector3(
       0, 
       0, 
-      Math.random() * 0.02 + 0.005
+      settings.tubeMinSpeed + (Math.random() * (settings.tubeMaxSpeed - settings.tubeMinSpeed))
     )
       
       scene.add(path);
@@ -150,43 +211,28 @@ function init() {
       paths.push(path)
       speeds.push(speed)
     }   
-
+    
+    animate();
   }
-    function animate() {
-      requestAnimationFrame( animate );
+  
+  function animate() {
+    requestAnimationFrame( animate );
 
-      for (var i = 0; i < paths.length; i++) {
-        // get the group from the particles array
-        var path = paths[i]
-        
-        // get the speed of rotation from the speeds array
-        var speed = speeds[i]
-        
-        path.rotation.x += speed.x;
-        path.rotation.y += speed.y;
-        path.rotation.z += speed.z;
-        
-      }
-
-      renderer.render( scene, camera );
-
+    for (var i = 0; i < paths.length; i++) {
+      // get the group from the particles array
+      var path = paths[i]
+      
+      // get the speed of rotation from the speeds array
+      var speed = speeds[i]
+      
+      path.rotation.x += speed.x;
+      path.rotation.y += speed.y;
+      path.rotation.z += speed.z;
+      
     }
 
-
-
-    //dat gut
-    window.onload = function() {
-    var gui = new dat.GUI();
-
-    var cameraGui = gui.addFolder('Camera');
-      cameraGui.add(camera.position, 'x', -50,50).step(1);
-      cameraGui.add(camera.position, 'y', -50,50).step(1);
-      cameraGui.add(camera.position, 'z', 10,1000).step(1);
-      cameraGui.open();
-
-    gui.add(guiControls, 'PARTICLE_COUNT', 0, 20).step(1);
-
-    };
+    renderer.render( scene, camera );
+  }
 
     </script>
   </body>
