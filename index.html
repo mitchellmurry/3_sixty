@@ -29,19 +29,22 @@
     <script>
 var renderer, scene, camera, controls, particle;
 var guiControls, datGUI;
-var particles = []
+var trails = []
 var speeds = []
 var meshs = []
+var t = 0;
 
 var settings = {
-  particleCount: 6,
+  particleCount: 3,
   tubeMinSpeed: 0.005,
   tubeMaxSpeed: 0.01,
-  tubeThickness: 0.5,
+  tubeThickness: 0.3,
   tubeArcMin: Math.PI / 6,
   tubeArcMax: Math.PI / 3,
   tubeRadiusMin: 10,
   tubeRadiusMax: 20,
+  pointsPerFrame: 2,
+  lengthOfTrail: 400,
   color1: "#009ee3", 
   color2: "#dedc00", 
   color3: "#e94e1c",
@@ -85,6 +88,10 @@ gui.add(settings, 'tubeRadiusMax', 4, 40).onFinishChange(function (value) {
   init()
 });
 
+gui.add(settings, 'lengthOfTrail', 10, 10000).onFinishChange(function (value) {
+  init()
+});
+
 gui.addColor(settings, 'color1').onFinishChange(function (value) {
   init()
 });
@@ -112,9 +119,71 @@ document.body.appendChild( renderer.domElement );
 
 init();
 
+function wavePoint(points, time) {
+  var d = (points.length - 1) * time;
+  var index1 = Math.floor(d);
+  var index2 = (index1 + 1 < points.length) ? index1 + 1 : index1;
+        
+  var pt1 = points[index1];
+  var pt2 = points[index2];
+        
+  var point1 = new THREE.Vector3(
+    pt1.radius * Math.sin(pt1.angleX) * Math.cos(pt1.angleY),
+    pt1.radius * Math.sin(pt1.angleX) * Math.sin(pt1.angleY),
+    pt1.radius * Math.cos(pt1.angleY),
+  )
+  
+  var point2 = new THREE.Vector3(
+    pt2.radius * Math.sin(pt2.angleX) * Math.cos(pt2.angleY),
+    pt2.radius * Math.sin(pt2.angleX) * Math.sin(pt2.angleY),
+    pt2.radius * Math.cos(pt2.angleY),
+  )
+  
+  var weight = d - index1;
+  
+  return new THREE.Vector3().copy(point1).lerp(point2, weight);
+}
+
+function tickPoints(trail) {
+  for (var j = 0; j < Math.max(1, settings.lengthOfTrail - trail.points.length); j++) {
+    // trail.radius += 0.1
+    trail.t += 1
+    trail.angleX += 0.003 + Math.sin(trail.t / 200000)
+    trail.angleY += 0.005 + Math.sin(trail.t / 300000)
+    
+    var radius = trail.radius
+    var angle = trail.angle
+            
+    trail.points.unshift({
+      radius: trail.radius,
+      angleX: trail.angleX,
+      angleY: trail.angleY
+    }) 
+  }
+  
+  if (trail.points.length > settings.lengthOfTrail) {        
+    trail.points = trail.points.slice(0, settings.lengthOfTrail)
+  }
+  
+  return trail
+}
+
+
+
 function init() {
   // empty each time we init (in case we change anything in the sliders)
-  paths = []
+  function Wave(trail) {
+    THREE.Curve.call( this );
+    this.trail = trail;
+  }
+  Wave.prototype = Object.create(THREE.Curve.prototype);
+  Wave.prototype.constructor = Wave;
+  Wave.prototype.getPoint = function (time) {
+    var points = (this.trail.points !== undefined) ? this.trail.points : [];        
+    return wavePoint(points, time)
+  };
+
+  trails = []
   speeds = []
   colors = [settings.color1, settings.color2, settings.color3, settings.color4, settings.color5, settings.color6].filter(function (item) {
     return item !== null
@@ -143,96 +212,89 @@ function init() {
   scene.add(sprite);
 
   for (var i = 0; i < settings.particleCount; i++) {
-    function Ellipse(rad, e) {
-      THREE.Curve.call(this);
-      this.radius = rad
-      this.end = e
-    }
-
-    Ellipse.prototype = Object.create( THREE.Curve.prototype );
-    Ellipse.prototype.constructor = Ellipse;
-
-    // define the getPoint function for the subClass
-    Ellipse.prototype.getPoint = function ( t ) {
-      var radians = this.end * t;
-
-      return new THREE.Vector3(this.radius * Math.cos( radians ),
-                               this.radius * Math.sin( radians ),
-                               0);
-    };
-    
-    var path = new THREE.Group();   
-    
     var color = colors[i % colors.length]
     var material = new THREE.MeshBasicMaterial({ color: color });
-    
-    var radius = settings.tubeRadiusMin + (Math.random() * (settings.tubeRadiusMax - settings.tubeRadiusMin))
-    var rotation = new THREE.Vector3(
-      2 * Math.PI * Math.random(), 
-      2 * Math.PI * Math.random(), 
-      0
-    )
-      
-    var arc = settings.tubeArcMin + (Math.random() * (settings.tubeArcMax - settings.tubeArcMin))
 
-    var geometry = new THREE.TubeGeometry(
-      new Ellipse(radius, arc), 
-      100, 
-      settings.tubeThickness, 
-      20, 
-      false
-    );
-    var mesh = new THREE.Mesh(geometry, material);
+    var trail = {
+      radius: settings.tubeRadiusMin + (Math.random() * (settings.tubeRadiusMax - settings.tubeRadiusMin)),
+      angleX: 2 * Math.PI * Math.random(), 
+      angleY: 2 * Math.PI * Math.random(),
+      points: [],
+      color: color,
+      group: new THREE.Group(),
+      t: 0,
+    }
+    
+    trail = tickPoints(trail)
     
     var startBall = new THREE.SphereGeometry(settings.tubeThickness, 32, 32);
     var startBallMesh = new THREE.Mesh(startBall, material);
-    startBallMesh.position.x = radius
+    trail.startBallMesh = startBallMesh
 
     var endBall = new THREE.SphereGeometry(settings.tubeThickness, 32, 32);
     var endBallMesh = new THREE.Mesh(endBall, material);
-    endBallMesh.position.x = radius * Math.cos(arc)
-    endBallMesh.position.y = radius * Math.sin(arc)
-
-    path.add(mesh)
-    path.add(startBallMesh)
-    path.add(endBallMesh)
-
-    path.rotation.x = rotation.x;
-    path.rotation.y = rotation.y;
-      
-    var speed = new THREE.Vector3(
-      0, 
-      0, 
-      settings.tubeMinSpeed + (Math.random() * (settings.tubeMaxSpeed - settings.tubeMinSpeed))
-    )
-      
-      scene.add(path);
-      
-      paths.push(path)
-      speeds.push(speed)
-    }   
+    trail.endBallMesh = endBallMesh
     
-    animate();
+    var path = new Wave(trail);
+    var geometry = new THREE.TubeGeometry(path, 300, settings.tubeThickness, 20, false );
+    var waveMesh = new THREE.Mesh(geometry, material);
+    waveMesh.geometry.verticesNeedUpdate = true
+    
+
+    
+    trail.waveMesh = waveMesh
+
+    
+    trail.group.add(startBallMesh)
+    trail.group.add(endBallMesh)
+    trail.group.add(waveMesh)
+    
+    scene.add(trail.group)
+    
+    trails.push(trail)
   }
+
+  animate();
+}
+
+function animate() {
+  requestAnimationFrame(animate)
   
-  function animate() {
-    requestAnimationFrame( animate );
-
-    for (var i = 0; i < paths.length; i++) {
-      // get the group from the particles array
-      var path = paths[i]
-      
-      // get the speed of rotation from the speeds array
-      var speed = speeds[i]
-      
-      path.rotation.x += speed.x;
-      path.rotation.y += speed.y;
-      path.rotation.z += speed.z;
-      
-    }
-
-    renderer.render( scene, camera );
+  function Wave(trail) {
+    THREE.Curve.call( this );
+    this.trail = trail;
   }
+  Wave.prototype = Object.create(THREE.Curve.prototype);
+  Wave.prototype.constructor = Wave;
+  Wave.prototype.getPoint = function (time) {
+    var points = (this.trail.points !== undefined) ? this.trail.points : [];        
+    return wavePoint(points, time)
+  };
+
+
+  for (var i = 0; i < trails.length; i++) {
+    // get the group from the particles array
+    var trail = trails[i]
+    
+    trail = tickPoints(trail);
+
+    var startPos = wavePoint(trail.points, 0)
+    trail.startBallMesh.position.x = startPos.x
+    trail.startBallMesh.position.y = startPos.y
+    trail.startBallMesh.position.z = startPos.z
+    
+    var endPos = wavePoint(trail.points, 1)
+    trail.endBallMesh.position.x = endPos.x
+    trail.endBallMesh.position.y = endPos.y
+    trail.endBallMesh.position.z = endPos.z
+    
+    
+    var geometry = new THREE.TubeGeometry(new Wave(trail), 100, settings.tubeThickness, 8, false );
+    trail.waveMesh.geometry = geometry;
+  }
+
+  renderer.render( scene, camera );
+}
 
     </script>
   </body>
